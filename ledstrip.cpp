@@ -53,13 +53,16 @@ if (!SetCommTimeouts(hComm, &timeouts)){
 }
 
 
-bool send_data(int* instring){
-DWORD numbytes_ok;    
-if(!WriteFile(hComm,instring,sizeof(instring),&numbytes_ok,NULL));
+bool send_data(char* instring){
+DWORD numbytes_ok;   
+    if(!WriteFile(hComm,instring,11,&numbytes_ok,NULL));
 {
     cout<<"writing error   sent number:"<< numbytes_ok;
     return 1;
 }
+
+    
+
 return 0;
 }
 
@@ -79,36 +82,33 @@ int main(){
 
 
 
-char select[17];
-int datafile[11] = {0};
+char select[17] = {9};
+char datafile[11] = {0};
 int colorint;
 int j=0;
 char jchar;
 
 cout<< "welcome to the led control program \n enter which leds you want to control with a comma in  between (enter a for all):";
 cin>> select;
-/*
+
 if(select[0]=='a')
     {   
-        
-      
-    
         for (int i = 0; i < 17; i+=2)
         { 
-          itoa(j,&jchar,10);    
-          select[i]=j;
+        
+              
+          select[i]=j+48;
           j++;
-          cout<<select;
         }
         
        
     }
 
-    */
-//portman();
+
+portman();
 
 for (int i=0; i<17; i+=2){
-    if (select[i]!=0)
+    if (!select[i]==9)
     {
         datafile[0]= select[i]-48;
         cout<<"enter value of green for led number "<<select[i]<<" ==> ";
@@ -128,7 +128,7 @@ for (int i=0; i<17; i+=2){
             datafile[2]++;
             colorint-=10;
         }
-        while(colorint>1)
+        while(colorint>0)
         {
             datafile[3]++;
             colorint--;
@@ -151,7 +151,7 @@ for (int i=0; i<17; i+=2){
             datafile[5]++;
             colorint-=10;
         }
-        while(colorint>1)
+        while(colorint>0)
         {
             datafile[6]++;
             colorint--;
@@ -175,7 +175,7 @@ for (int i=0; i<17; i+=2){
             datafile[8]++;
             colorint-=10;
         }
-        while(colorint>1)
+        while(colorint>0)
         {
             datafile[9]++;
             colorint--;
@@ -188,14 +188,16 @@ for (int i=0; i<17; i+=2){
             cout<<"incorrect entry, try again";
             cin>>colorint;
         }
-        datafile[10]=colorint;
-        for (int i = 0; i < 11; i++)
-        {
-            cout<<"\n"<<datafile[i];
-        }
-        cout<<"\n";
-        //send_data(datafile);
+        datafile[10]=colorint+48;
 
+        send_data(datafile);
+
+        for (int i = 0; i < 12; i++)
+        {
+            datafile[i]='0';
+        }
+        
+        
 
     }
     
