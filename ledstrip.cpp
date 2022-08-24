@@ -193,7 +193,7 @@ for (int i=0; i<17; i+=2){
         {
             cout<<"\n"<<datafile[i];
         }
-        
+        cout<<"\n";
         //send_data(datafile);
 
 
