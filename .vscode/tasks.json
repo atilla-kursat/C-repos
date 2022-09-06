@@ -8,7 +8,11 @@
                 "-fdiagnostics-color=always",
                 "-g",
                 "${file}",
+                "-L/usr/local/lib",
+                "-lz",
                 "-o",
+                
+                
                 "${fileDirname}\\${fileBasenameNoExtension}.exe"
             ],
             "options": {
@@ -28,7 +32,11 @@
                 "-fdiagnostics-color=always",
                 "-g",
                 "${file}",
+                "-L/usr/local/lib",
+                "-lz",
                 "-o",
+                
+                
                 "${fileDirname}\\${fileBasenameNoExtension}.exe"
             ],
             "options": {
@@ -48,7 +56,11 @@
                 "-fdiagnostics-color=always",
                 "-g",
                 "${file}",
+                "-L/usr/local/lib",
+                "-lz",
                 "-o",
+               
+                
                 "${fileDirname}\\${fileBasenameNoExtension}.exe"
             ],
             "options": {

@@ -1,10 +1,14 @@
 #include <iostream>
 #include <stdio.h>
 #include <windows.h>
+#include <zlib.h>
 
 
 using namespace std;
 
+uint8_t result[4];
+char packet[18];
+char readfile[1];
 HANDLE hComm;
 char ComPortName[] = "\\\\.\\COM8";
 bool status;
@@ -13,6 +17,8 @@ char temp;
 DWORD numberofbytes;
 DCB dcb;
 COMMTIMEOUTS timeouts;
+bool receive_data();
+
 
 void portman(){
 
@@ -54,36 +60,100 @@ if (!SetCommTimeouts(hComm, &timeouts)){
 
 
 bool send_data(char* instring){
-DWORD numbytes_ok;   
-    if(!WriteFile(hComm,instring,11,&numbytes_ok,NULL));
+    DWORD numbytes_ok;   
+    WriteFile(hComm,instring,18,&numbytes_ok,NULL);
+    /*receive_data();
+    if(!readfile[1]){
+        cout<<"\ncorrupted data was sent, trying again...";
+        WriteFile(hComm,instring,18,&numbytes_ok,NULL);
+    }
+    else{
+        cout<<"\n successful transmission";
+    }
+    */
+    return 0;
+}
+
+void combinedata(char* data){
+int checksum=0;
+int j=1;
+packet[0] = 75;//start of file
+for (int i = 0; i < 11; i++)//data packet and checksum calc
 {
-    cout<<"writing error   sent number:"<< numbytes_ok;
-    return 1;
+    packet[j]=data[i];
+    checksum+=data[i];
+    j++;
+}
+packet[j]=checksum;//storing checksum
+for (int i = 0; i < 4; i++)//storing crc value
+{
+    j++;
+    packet[j] = result[i];
+}
+packet[j+1] = 85;//end of file
+
+
 }
 
-    
 
-return 0;
-}
 
 bool receive_data(){
 LPDWORD numbytes_ok;
-char readfile[50];
-if(!ReadFile(hComm,readfile,sizeof(readfile),numbytes_ok,NULL))
+
+if(!ReadFile(hComm,readfile,1,numbytes_ok,NULL))
    { cout<<"reading error";
     return 1;}
+
 
     return 0;
 
     
 }
 
+
+void crc_calc(char* input){
+     
+char data[12];
+ 
+int n = 0;   
+    for (int i = 0; i < 11; i++)
+    {
+        data[i] = input[i]+48;
+    } 
+const unsigned char *buf = (unsigned char *)data;
+
+
+uLong crc = crc32(0L, Z_NULL, 0);
+
+
+ crc = crc32(crc,buf,11);
+ cout<< "\n" <<crc << "\n";
+for (int i = 0; i < 4; i++)
+{
+
+    result[i] = (crc >> n) & 0xFF;
+    n+=8;
+}
+
+   
+
+   
+}
+
+
+
+
 int main(){
 
 
 
-char select[17] = {9};
-char datafile[11] = {0};
+char select[17];
+for (int i = 0; i < 18; i++)
+{
+    select[i]='k';
+}
+
+char datafile[11];
 int colorint;
 int j=0;
 char jchar;
@@ -93,7 +163,7 @@ cin>> select;
 
 if(select[0]=='a')
     {   
-        for (int i = 0; i < 17; i+=2)
+        for (int i = 0; i < 16; i+=2)
         { 
         
               
@@ -107,8 +177,9 @@ if(select[0]=='a')
 
 portman();
 
-for (int i=0; i<17; i+=2){
-    if (!select[i]==9)
+
+for (int i=0; i<16; i+=2){
+    if (select[i] != 'k')
     {
         datafile[0]= select[i]-48;
         cout<<"enter value of green for led number "<<select[i]<<" ==> ";
@@ -118,12 +189,12 @@ for (int i=0; i<17; i+=2){
             cout<<"incorrect entry, try again";
             cin>>colorint;
         }
-        while(colorint>100)
+        while(colorint>=100)
         {
             datafile[1]++;
             colorint-=100;
         }
-        while(colorint>10)
+        while(colorint>=10)
         {
             datafile[2]++;
             colorint-=10;
@@ -141,12 +212,12 @@ for (int i=0; i<17; i+=2){
             cout<<"incorrect entry, try again";
             cin>>colorint;
         }
-        while(colorint>100)
+        while(colorint>=100)
         {
             datafile[4]++;
             colorint-=100;
         }
-        while(colorint>10)
+        while(colorint>=10)
         {
             datafile[5]++;
             colorint-=10;
@@ -165,12 +236,12 @@ for (int i=0; i<17; i+=2){
             cout<<"incorrect entry, try again";
             cin>>colorint;
         }
-        while(colorint>100)
+        while(colorint>=100)
         {
             datafile[7]++;
             colorint-=100;
         }
-        while(colorint>10)
+        while(colorint>=10)
         {
             datafile[8]++;
             colorint-=10;
@@ -188,18 +259,29 @@ for (int i=0; i<17; i+=2){
             cout<<"incorrect entry, try again";
             cin>>colorint;
         }
-        datafile[10]=colorint+48;
-
-        send_data(datafile);
+        datafile[10]=colorint;
+        crc_calc(datafile);
+        combinedata(datafile);
+        send_data(packet);
 
         for (int i = 0; i < 12; i++)
         {
-            datafile[i]='0';
+            datafile[i]=0;
         }
         
         
 
     }
+    else{
+        datafile[0]=8;
+        i=17;
+        sleep(1);
+        crc_calc(datafile);
+        combinedata(datafile);
+        send_data(packet);
+        
+    }
+    
     
 
 
